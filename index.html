@@ -1,0 +1,741 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable+ 課表美化生成器</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            background: #F5F7FF;
+            color: #394765;
+            transition: 0.3s;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 18px 5%;
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #E4E9F8;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: bold;
+            color: #6479CB;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #8793B1;
+            margin-top: 5px;
+        }
+
+        nav {
+            display: flex;
+            gap: 22px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #526387;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: #8C91E8;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 180px minmax(0, 1fr) 300px;
+            gap: 20px;
+            padding: 25px;
+            max-width: 1500px;
+            margin: auto;
+        }
+
+        aside, .panel, .preview-card {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #E4EAF9;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(157, 174, 220, 0.10);
+        }
+
+        aside a {
+            display: block;
+            padding: 13px 10px;
+            margin-bottom: 8px;
+            color: #6577B5;
+            text-decoration: none;
+            border-radius: 10px;
+        }
+
+        aside a:hover {
+            background: #E9EDFF;
+        }
+
+        h1 {
+            font-size: 27px;
+            margin: 0 0 10px;
+        }
+
+        h2 {
+            font-size: 19px;
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #8490AD;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .preview-card {
+            margin-top: 20px;
+            padding: 18px;
+        }
+
+        .schedule-design {
+            padding: 22px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #E0EAFF, #F0E8FF);
+            overflow: hidden;
+        }
+
+        .schedule-title {
+            text-align: center;
+            padding: 12px 0 22px;
+        }
+
+        .schedule-title h2 {
+            font-size: 25px;
+            color: #52699D;
+            margin-bottom: 8px;
+        }
+
+        .schedule-title p {
+            color: #7887B0;
+            font-size: 13px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            background: rgba(255, 255, 255, 0.75);
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 470px;
+            border-spacing: 4px;
+            table-layout: fixed;
+            text-align: center;
+        }
+
+        th, td {
+            padding: 12px 4px;
+            border-radius: 7px;
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        th {
+            background: #DCE7FF;
+            color: #536A9B;
+        }
+
+        td {
+            background: #E9F0FF;
+        }
+
+        td:nth-child(3n + 1) {
+            background: #E2F2EC;
+        }
+
+        td:nth-child(3n + 2) {
+            background: #F8E7F0;
+        }
+
+        td:first-child {
+            background: #E4E9F8;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        button, select, input {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            padding: 12px 17px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #8498EC, #A69BEF);
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+        .secondary {
+            background: white;
+            color: #7184D1;
+            border: 1px solid #DCE3FA;
+        }
+
+        .setting-section {
+            padding: 17px 0;
+            border-bottom: 1px solid #EEF0FA;
+        }
+
+        .setting-section:last-child {
+            border-bottom: none;
+        }
+
+        .step {
+            display: inline-flex;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #8494E8;
+            color: white;
+            justify-content: center;
+            align-items: center;
+            margin-right: 6px;
+        }
+
+        input[type="file"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #DCE3F6;
+            border-radius: 10px;
+            background: #FAFBFF;
+            color: #536387;
+            margin-top: 8px;
+        }
+
+        .upload-box {
+            padding: 20px 10px;
+            text-align: center;
+            border: 2px dashed #CFD9F7;
+            border-radius: 12px;
+            background: #FAFBFF;
+        }
+
+        .color-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .color-choice {
+            min-height: 65px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            color: #526080;
+            background: #EDF0FF;
+        }
+
+        .color-choice.active {
+            border-color: #7F91E8;
+        }
+
+        .swatch {
+            display: block;
+            height: 20px;
+            border-radius: 5px;
+            margin-bottom: 6px;
+        }
+
+        .blue { background: linear-gradient(90deg, #DCE8FF, #C6D6FF); }
+        .pink { background: linear-gradient(90deg, #FBE1EE, #F4C9DE); }
+        .green { background: linear-gradient(90deg, #E0F3E5, #C7E8D4); }
+        .purple { background: linear-gradient(90deg, #EEE4FF, #D8C8F8); }
+        .orange { background: linear-gradient(90deg, #FFE9D2, #FFD3BC); }
+        .gray { background: linear-gradient(90deg, #E9ECF2, #CFD5E0); }
+
+        .mode-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-options button {
+            flex: 1;
+        }
+
+        .full-button {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .uploaded-image {
+            max-width: 100%;
+            max-height: 220px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-top: 12px;
+        }
+
+        .info {
+            background: #F0F4FF;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        footer {
+            text-align: center;
+            padding: 22px;
+            color: #8B96B0;
+            font-size: 12px;
+        }
+
+        /* 深色模式 */
+        body.dark {
+            background: #24283A;
+            color: #EEF0FF;
+        }
+
+        body.dark header,
+        body.dark aside,
+        body.dark .panel,
+        body.dark .preview-card {
+            background: #30354B;
+            border-color: #444B68;
+        }
+
+        body.dark nav a,
+        body.dark aside a,
+        body.dark .description {
+            color: #D0D7FF;
+        }
+
+        body.dark .schedule-design {
+            background: linear-gradient(145deg, #343D60, #48405E);
+        }
+
+        body.dark .schedule-title h2,
+        body.dark .schedule-title p {
+            color: #E3E7FF;
+        }
+
+        body.dark .table-wrap {
+            background: #30354B;
+        }
+
+        body.dark th,
+        body.dark td {
+            background: #454D6B;
+            color: #F2F3FF;
+        }
+
+        body.dark .upload-box,
+        body.dark input[type="file"],
+        body.dark select,
+        body.dark .color-choice {
+            background: #3A405A;
+            color: white;
+            border-color: #535C7E;
+        }
+
+        body.dark .secondary {
+            background: #3A405A;
+            color: white;
+        }
+
+        body.dark .info {
+            background: #343B57;
+        }
+
+        @media (max-width: 1050px) {
+            .layout {
+                grid-template-columns: 150px minmax(0, 1fr);
+            }
+
+            .settings {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .layout {
+                display: flex;
+                flex-direction: column;
+                padding: 12px;
+            }
+
+            header {
+                padding: 15px;
+            }
+
+            nav {
+                gap: 12px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+
+            .schedule-design {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <div class="logo">▦ Timetable+</div>
+        <div class="subtitle">讓課表變得更好看！</div>
+    </div>
+
+    <nav>
+        <a href="#home">⌂ 首頁</a>
+        <a href="#schedule">我的課表</a>
+        <a href="#settings">製作課表</a>
+        <a href="#help">使用說明</a>
+    </nav>
+</header>
+
+<div class="layout">
+
+    <aside>
+        <h3>功能選單</h3>
+        <a href="#home">⌂ 生成課表</a>
+        <a href="#schedule">▤ 課表預覽</a>
+        <a href="#settings">▦ 風格設定</a>
+        <a href="#help">ⓘ 使用教學</a>
+        <div class="info">
+            一張好看的課表，開啟更好的日常！
+        </div>
+    </aside>
+
+    <main id="home">
+        <h1>上傳課表・一鍵生成 ✨</h1>
+        <p class="description">
+            上傳你的課表圖片，選擇喜歡的色系與樣式，
+            打造專屬於你的美觀課表！
+        </p>
+
+        <section class="preview-card" id="schedule">
+            <div class="schedule-design" id="scheduleDesign">
+                <div class="schedule-title">
+                    <h2>My Class Schedule ♡</h2>
+                    <p>— 生活很苦，但有課表會更甜 —</p>
+                </div>
+
+                <div class="table-wrap">
+                    <table id="timetable">
+                        <tr>
+                            <th>時間</th>
+                            <th>星期一</th>
+                            <th>星期二</th>
+                            <th>星期三</th>
+                            <th>星期四</th>
+                            <th>星期五</th>
+                        </tr>
+                        <tr>
+                            <td>第一節</td>
+                            <td>國文</td>
+                            <td>數學</td>
+                            <td>英文</td>
+                            <td>國文</td>
+                            <td>數學</td>
+                        </tr>
+                        <tr>
+                            <td>第二節</td>
+                            <td>數學</td>
+                            <td>英文</td>
+                            <td>地理</td>
+                            <td>數學</td>
+                            <td>英文</td>
+                        </tr>
+                        <tr>
+                            <td>第三節</td>
+                            <td>英文</td>
+                            <td>國文</td>
+                            <td>數學</td>
+                            <td>英文</td>
+                            <td>國文</td>
+                        </tr>
+                        <tr>
+                            <td>第四節</td>
+                            <td>歷史</td>
+                            <td>化學</td>
+                            <td>生物</td>
+                            <td>地理</td>
+                            <td>物理</td>
+                        </tr>
+                        <tr>
+                            <td>第五節</td>
+                            <td>生物</td>
+                            <td>物理</td>
+                            <td>歷史</td>
+                            <td>化學</td>
+                            <td>生物</td>
+                        </tr>
+                        <tr>
+                            <td>第六節</td>
+                            <td>化學</td>
+                            <td>地理</td>
+                            <td>國文</td>
+                            <td>物理</td>
+                            <td>歷史</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button class="secondary" onclick="downloadSchedule()">
+                    ↓ 下載課表圖片
+                </button>
+                <button onclick="makeSchedule()">
+                    ✧ 一鍵美化
+                </button>
+            </div>
+
+            <p class="description" id="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel" id="help" style="margin-top:20px">
+            <h2>使用說明</h2>
+            <p class="description">
+                ① 上傳原始課表圖片。<br>
+                ② 選擇喜歡的顏色色系。<br>
+                ③ 切換淺色或深色模式。<br>
+                ④ 按下「一鍵美化」套用配色。<br>
+                ⑤ 可使用列印功能將課表另存為 PDF。
+            </p>
+        </section>
+    </main>
+
+    <section class="panel settings" id="settings">
+        <div class="setting-section">
+            <h2><span class="step">1</span> 上傳課表圖片</h2>
+            <div class="upload-box">
+                <p>☁ 拖曳圖片到這裡，或點擊上傳</p>
+                <input type="file" id="upload" accept="image/*">
+                <div id="imagePreview"></div>
+            </div>
+        </div>
+
+        <div class="setting-section">
+            <h2><span class="step">2</span> 選擇喜歡的色系</h2>
+
+            <div class="color-options">
+                <button class="color-choice active" data-theme="blue"
+                    onclick="chooseColor('blue', this)">
+                    <span class="swatch blue"></span>藍色清新
+                </button>
+
+                <button class="color-choice" data-theme="pink"
+                    onclick="chooseColor('pink', this)">
+                    <span class="swatch pink"></span>粉色甜美
+                </button>
+
+                <button class="color-choice" data-theme="green"
+                    onclick="chooseColor('green', this)">
+                    <span class="swatch green"></span>綠意自然
+                </button>
+
+                <button class="color-choice" data-theme="purple"
+                    onclick="chooseColor('purple', this)">
+                    <span class="swatch purple"></span>紫色夢幻
+                </button>
+
+                <button class="color-choice" data-theme="orange"
+                    onclick="chooseColor('orange', this)">
+                    <span class="swatch orange"></span>橘色活力
+                </button>
+
+                <button class="color-choice" data-theme="gray"
+                    onclick="chooseColor('gray', this)">
+                    <span class="swatch gray"></span>灰色簡約
+                </button>
+            </div>
+        </div>
+
+        <div class="setting-section">
+            <h2><span class="step">3</span> 選擇顯示模式</h2>
+            <div class="mode-options">
+                <button class="secondary" onclick="setMode(false)">
+                    ☀ 淺色模式
+                </button>
+                <button class="secondary" onclick="setMode(true)">
+                    ☾ 深色模式
+                </button>
+            </div>
+        </div>
+
+        <button class="full-button" onclick="makeSchedule()">
+            ✨ 一鍵生成課表
+        </button>
+    </section>
+
+</div>
+
+<footer>
+    Timetable+ 課表美化生成器｜讓每天的課表更有風格 ♡
+</footer>
+
+<script>
+    let currentTheme = "blue";
+
+    const themes = {
+        blue: {
+            background: "#E0EAFF",
+            heading: "#52699D",
+            header: "#DCE7FF",
+            cells: ["#E2ECFF", "#E1F2EB", "#F8E8F0", "#EAE5FF", "#FFF0E0"]
+        },
+        pink: {
+            background: "#FBE6F0",
+            heading: "#A45F83",
+            header: "#F6D7E7",
+            cells: ["#FBE1EE", "#F8E8F0", "#F3E5FF", "#FFE9E0", "#E6F2FF"]
+        },
+        green: {
+            background: "#E3F3E8",
+            heading: "#4D8065",
+            header: "#D2EBDD",
+            cells: ["#DFF2E5", "#E6F4EE", "#F8E8F0", "#E0EDFF", "#F5F0D9"]
+        },
+        purple: {
+            background: "#EEE7FF",
+            heading: "#7461A5",
+            header: "#E1D7FA",
+            cells: ["#EEE4FF", "#E4E8FF", "#F8E4F0", "#E0F2F1", "#FFF0E0"]
+        },
+        orange: {
+            background: "#FFF0DF",
+            heading: "#A66F45",
+            header: "#FFE2C5",
+            cells: ["#FFE9D2", "#FBE1EE", "#E5EDFF", "#E2F2E8", "#FFF0C9"]
+        },
+        gray: {
+            background: "#EDF0F5",
+            heading: "#626D83",
+            header: "#DDE2EB",
+            cells: ["#E9ECF2", "#E2E8F0", "#F1E8EF", "#E7E4F8", "#E4F0ED"]
+        }
+    };
+
+    function chooseColor(theme, button) {
+        currentTheme = theme;
+
+        document.querySelectorAll(".color-choice").forEach(function(item) {
+            item.classList.remove("active");
+        });
+
+        button.classList.add("active");
+        makeSchedule();
+    }
+
+    function setMode(isDark) {
+        document.body.classList.toggle("dark", isDark);
+    }
+
+    function makeSchedule() {
+        const theme = themes[currentTheme];
+
+        document.getElementById("scheduleDesign").style.background =
+            "linear-gradient(145deg, " + theme.background + ", #F8F7FF)";
+
+        document.querySelector(".schedule-title h2").style.color =
+            theme.heading;
+
+        document.querySelectorAll("#timetable th").forEach(function(cell) {
+            cell.style.backgroundColor = theme.header;
+        });
+
+        document.querySelectorAll("#timetable tr").forEach(function(row) {
+            row.querySelectorAll("td").forEach(function(cell, index) {
+                if (index === 0) {
+                    cell.style.backgroundColor = theme.header;
+                } else {
+                    cell.style.backgroundColor =
+                        theme.cells[(index + row.rowIndex) % theme.cells.length];
+                }
+            });
+        });
+
+        document.getElementById("status").textContent =
+            "已套用配色！你可以繼續選擇其他色系。";
+    }
+
+    document.getElementById("upload").addEventListener("change", function() {
+        const file = this.files[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("請上傳圖片檔案。");
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            const preview = document.getElementById("imagePreview");
+            preview.innerHTML = "";
+
+            const img = document.createElement("img");
+            img.src = event.target.result;
+            img.alt = "上傳的原始課表圖片";
+            img.className = "uploaded-image";
+
+            preview.appendChild(img);
+
+            document.getElementById("status").textContent =
+                "圖片已上傳並顯示在設定區。示範版尚未自動辨識課程文字。";
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    function downloadSchedule() {
+        window.print();
+    }
+
+    makeSchedule();
+</script>
+
+</body>
+</html>
